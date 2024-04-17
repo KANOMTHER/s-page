@@ -1,92 +1,111 @@
-import { LucideIcon } from "lucide-react";
+import { LucideIcon } from 'lucide-react';
 
 export interface RouteComponent {
-    path: string;
-    icon?: LucideIcon;
-    type: 'public' | 'private';
-    element: JSX.Element;
-    parent?: RouteComposite;
-    display(): void;
-    detach(): void;
-    add(route: RouteComponent): void;
-    delete(route: RouteComponent): void;
+  path: string;
+  icon?: LucideIcon;
+  type: 'public' | 'private';
+  element: JSX.Element;
+  parent?: RouteComposite;
+  display(): void;
+  detach(): void;
+  add(route: RouteComponent): void;
+  delete(route: RouteComponent): void;
+  getNode(): RouteComponent;
 }
 
 export class RouteComposite implements RouteComponent {
-    path: string;
-    icon?: LucideIcon;
-    type: 'public' | 'private';
-    element: JSX.Element;
-    parent?: RouteComposite;
-    children: RouteComponent[] = [];
+  path: string;
+  icon?: LucideIcon;
+  type: 'public' | 'private';
+  element: JSX.Element;
+  parent?: RouteComposite;
+  children: RouteComponent[] = [];
 
-    constructor(path: string, icon: LucideIcon | undefined, type: 'public' | 'private', element: JSX.Element) {
-        this.path = path;
-        this.icon = icon ?? undefined;
-        this.type = type;
-        this.element = element;
-        this.children = [];
-    }
+  constructor(
+    path: string,
+    icon: LucideIcon | undefined,
+    type: 'public' | 'private',
+    element: JSX.Element,
+  ) {
+    this.path = path;
+    this.icon = icon ?? undefined;
+    this.type = type;
+    this.element = element;
+    this.children = [];
+  }
 
-    display(): void {
-        const composite = `/${this.path}`
-        const parent = `/${this.parent?.path ?? ''}`
-        const children = this.children.map(child => `/${child.path}`).join('')
-        
-        console.log(`${parent}${composite}${children}`)
-    }
+  display(): void {
+    const composite = `/${this.path}`;
+    const parent = `/${this.parent?.path ?? ''}`;
+    const children = this.children.map((child) => `/${child.path}`).join('');
 
-    add(route: RouteComponent): void {
-        route.detach()
-        route.parent = this
-        this.children.push(route)
-    }
+    console.log(`${parent}${composite}${children}`);
+  }
 
-    delete(route: RouteComponent): void {
-        const index = this.children.indexOf(route)
+  add(route: RouteComponent): void {
+    route.detach();
+    route.parent = this;
+    this.children.push(route);
+  }
 
-        if (index !== -1) return
-        this.children.splice(index, 1)
-    }
+  delete(route: RouteComponent): void {
+    const index = this.children.indexOf(route);
 
-    detach(): void {
-        if (!this.parent) return
-        this.parent.delete(this)
-        this.parent = undefined
-    }
+    if (index !== -1) return;
+    this.children.splice(index, 1);
+  }
+
+  detach(): void {
+    if (!this.parent) return;
+    this.parent.delete(this);
+    this.parent = undefined;
+  }
+
+  getNode(): RouteComposite {
+    return this;
+  }
 }
 
 export class RouteLeaf implements RouteComponent {
-    path: string;
-    icon?: LucideIcon;
-    type: 'public' | 'private';
-    element: JSX.Element;
-    parent?: RouteComposite;
+  path: string;
+  icon?: LucideIcon;
+  type: 'public' | 'private';
+  element: JSX.Element;
+  parent?: RouteComposite;
 
-    constructor(path: string, icon: LucideIcon | undefined, type: 'public' | 'private', element: JSX.Element) {
-        this.path = path;
-        this.icon = icon ?? undefined;
-        this.type = type;
-        this.element = element;
-    }
+  constructor(
+    path: string,
+    icon: LucideIcon | undefined,
+    type: 'public' | 'private',
+    element: JSX.Element,
+  ) {
+    this.path = path;
+    this.icon = icon ?? undefined;
+    this.type = type;
+    this.element = element;
+  }
 
-    display(): void {
-        const composite = `/${this.path}`
-        const parent = `/${this.parent?.path ?? ''}`
-        
-        console.log(`${parent}${composite}`)
-    }
+  display(): void {
+    const composite = `/${this.path}`;
+    const parent = `/${this.parent?.path ?? ''}`;
 
-    add(route: RouteComponent): void {
-        throw new Error(`Cannot add ${route.path} to a leaf node.`)
-    }
+    console.log(`${parent}${composite}`);
+  }
 
-    delete(route: RouteComponent): void {
-        throw new Error(`Cannot delete ${route.path} to a leaf node.`)
-    }
+  add(route: RouteComponent): void {
+    throw new Error(`Cannot add ${route.path} to a leaf node.`);
+  }
 
-    detach(): void {
-        if (!this.parent) return
-        this.parent.delete(this)
-    }
+  delete(route: RouteComponent): void {
+    throw new Error(`Cannot delete ${route.path} to a leaf node.`);
+  }
+
+  detach(): void {
+    if (!this.parent) return;
+    this.parent.delete(this);
+  }
+
+  getNode(): RouteComponent {
+    return this;
+  }
 }

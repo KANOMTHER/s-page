@@ -1,5 +1,5 @@
-const Header = () => {
-	return <div className="text-xl">Header components</div>;
+const Header = ({ title }: { title: string }) => {
+  return <div className="text-xl font-bold">{title}</div>;
 };
 
 export default Header;
