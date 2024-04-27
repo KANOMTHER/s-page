@@ -11,34 +11,46 @@ import { Input } from '@/components/ui/input';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQuery } from '@tanstack/react-query';
+import axfetch from '@/utils/axfetch';
+import { useEffect } from 'react';
+import { Button } from '@/components/ui/button';
 
 const studentSchema = z.object({
-	id: z.number(),
-	programId: z.number(),
-	program: z.object({
-		faculty: z.object({
-			major: z.string(),
-			department: z.string(),
+	ID: z.number(),
+	Program: z.object({
+		Faculty: z.object({
+			Major: z.string(),
+			Department: z.string(),
 		}),
-		programname: z.string(),
+		ProgramName: z.string(),
 	}),
-	degree: z.string(),
-	year: z.number(),
-	fName: z.string(),
-	lName: z.string(),
-	dob: z.string(),
-	entered: z.string(),
-	graduated: z.string().nullable(),
-	email: z.string().email(),
-	phone: z.string(),
-	advisorId: z.number(),
-	advisor: z.object({
-		fName: z.string(),
-		lName: z.string(),
+	Degree: z.string(),
+	Year: z.number(),
+	FName: z.string(),
+	LName: z.string(),
+	DOB: z.string(),
+	Entered: z.string(),
+	Graduated: z.string().nullable(),
+	Email: z.string().email(),
+	Phone: z.string(),
+	Advisor: z.object({
+		FName: z.string(),
+		LName: z.string(),
 	}),
 });
 
 const StudentProfile = () => {
+	const getStudent = async () => {
+		const res = await axfetch.get('/api/student/64070501001');
+		return res.data.message;
+	}
+
+	const { data: student, isPending, isError, error } = useQuery({
+		queryKey: ['student'],
+		queryFn: getStudent,
+	});
+
 	const form = useForm<z.infer<typeof studentSchema>>({
 		resolver: zodResolver(studentSchema),
 	});
@@ -46,6 +58,19 @@ const StudentProfile = () => {
 	const onSubmit = (values: z.infer<typeof studentSchema>) => {
 		console.log(values);
 	};
+
+	useEffect(()=>{
+		if (!student) return;
+		form.reset({
+			...student,
+			DOB: new Date(student.DOB).toLocaleString('en-EN', {year: 'numeric', month: 'short', day: '2-digit'}),
+			Entered: new Date(student.Entered).toLocaleString('en-EN', {year: 'numeric', month: 'short', day: '2-digit'}),
+		})
+	}, [form, student])
+
+	if (isPending) return <div>Loading...</div>;
+
+	if (isError) return <div>Error: {error.message}</div>;
 
 	return (
 		<>
@@ -55,12 +80,12 @@ const StudentProfile = () => {
 					{/* ID */}
 					<FormField
 						control={form.control}
-						name="id"
+						name="ID"
 						render={({ field }) => (
 							<FormItem>
 								<FormLabel>Student ID</FormLabel>
 								<FormControl>
-									<Input placeholder="Student ID" {...field} />
+									<Input placeholder="Student ID" type="number" disabled {...field} />
 								</FormControl>
 								<FormMessage />
 							</FormItem>
@@ -71,12 +96,12 @@ const StudentProfile = () => {
 						<span className="flex-1">
 							<FormField
 								control={form.control}
-								name="fName"
+								name="FName"
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>First Name</FormLabel>
 										<FormControl>
-											<Input placeholder="First Name" {...field} />
+											<Input placeholder="First Name" disabled {...field} />
 										</FormControl>
 										<FormMessage />
 									</FormItem>
@@ -87,12 +112,12 @@ const StudentProfile = () => {
 						<span className="flex-1">
 							<FormField
 								control={form.control}
-								name="lName"
+								name="LName"
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Last Name</FormLabel>
 										<FormControl>
-											<Input placeholder="Last Name" {...field} />
+											<Input placeholder="Last Name" disabled {...field} />
 										</FormControl>
 										<FormMessage />
 									</FormItem>
@@ -105,12 +130,12 @@ const StudentProfile = () => {
 						<span className="flex-1">
 							<FormField
 								control={form.control}
-								name="dob"
+								name="DOB"
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Date of Birth</FormLabel>
 										<FormControl>
-											<Input type="date" {...field} />
+											<Input type="text" {...field} disabled />
 										</FormControl>
 										<FormMessage />
 									</FormItem>
@@ -121,7 +146,7 @@ const StudentProfile = () => {
 						<span className="flex-1">
 							<FormField
 								control={form.control}
-								name="email"
+								name="Email"
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Email</FormLabel>
@@ -140,12 +165,12 @@ const StudentProfile = () => {
 						<span className="min-w-56 flex-1">
 							<FormField
 								control={form.control}
-								name="degree"
+								name="Degree"
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Degree</FormLabel>
 										<FormControl>
-											<Input placeholder="Degree" {...field} />
+											<Input placeholder="Degree" disabled {...field} />
 										</FormControl>
 										<FormMessage />
 									</FormItem>
@@ -156,12 +181,12 @@ const StudentProfile = () => {
 						<span className="min-w-56 flex-1">
 							<FormField
 								control={form.control}
-								name="program.faculty.major"
+								name="Program.Faculty.Major"
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Major</FormLabel>
 										<FormControl>
-											<Input placeholder="Major" {...field} />
+											<Input placeholder="Major" disabled {...field} />
 										</FormControl>
 										<FormMessage />
 									</FormItem>
@@ -172,12 +197,12 @@ const StudentProfile = () => {
 						<span className="min-w-56 flex-1">
 							<FormField
 								control={form.control}
-								name="program.faculty.department"
+								name="Program.Faculty.Department"
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Department</FormLabel>
 										<FormControl>
-											<Input placeholder="Department" {...field} />
+											<Input placeholder="Department" disabled {...field} />
 										</FormControl>
 										<FormMessage />
 									</FormItem>
@@ -188,12 +213,12 @@ const StudentProfile = () => {
 						<span className="min-w-56 flex-1">
 							<FormField
 								control={form.control}
-								name="program.programname"
+								name="Program.ProgramName"
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Program</FormLabel>
 										<FormControl>
-											<Input placeholder="Program" {...field} />
+											<Input placeholder="Program" disabled {...field} />
 										</FormControl>
 										<FormMessage />
 									</FormItem>
@@ -206,12 +231,12 @@ const StudentProfile = () => {
 						<span className="flex-1">
 							<FormField
 								control={form.control}
-								name="year"
+								name="Year"
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Year</FormLabel>
 										<FormControl>
-											<Input type="number" placeholder="Year" {...field} />
+											<Input type="number" placeholder="Year" disabled {...field} />
 										</FormControl>
 										<FormMessage />
 									</FormItem>
@@ -222,12 +247,12 @@ const StudentProfile = () => {
 						<span className="flex-1">
 							<FormField
 								control={form.control}
-								name="entered"
+								name="Entered"
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Entered</FormLabel>
 										<FormControl>
-											<Input type="date" {...field} />
+											<Input type="text" disabled {...field} />
 										</FormControl>
 										<FormMessage />
 									</FormItem>
@@ -238,12 +263,12 @@ const StudentProfile = () => {
 						<span className="flex flex-1 flex-col space-y-2">
 							<FormField
 								control={form.control}
-								name="entered"
+								name="Graduated"
 								render={() => (
 									<FormItem>
 										<FormLabel>Graduated</FormLabel>
 										<FormControl>
-											<Input type="text" value={'Not Graduate'} />
+											<Input type="text" disabled value={student.Graduated ?? 'Not Graduate'} />
 										</FormControl>
 										<FormMessage />
 									</FormItem>
@@ -257,12 +282,12 @@ const StudentProfile = () => {
 						<span className="flex-1">
 							<FormField
 								control={form.control}
-								name="advisor.fName"
+								name="Advisor.FName"
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Advisor First Name</FormLabel>
 										<FormControl>
-											<Input placeholder="Advisor First Name" {...field} />
+											<Input placeholder="Advisor First Name" disabled {...field} />
 										</FormControl>
 										<FormMessage />
 									</FormItem>
@@ -272,12 +297,12 @@ const StudentProfile = () => {
 						<span className="flex-1">
 							<FormField
 								control={form.control}
-								name="advisor.lName"
+								name="Advisor.LName"
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Advisor Last Name</FormLabel>
 										<FormControl>
-											<Input placeholder="Advisor Last Name" {...field} />
+											<Input placeholder="Advisor Last Name" disabled {...field} />
 										</FormControl>
 										<FormMessage />
 									</FormItem>
@@ -285,6 +310,8 @@ const StudentProfile = () => {
 							/>
 						</span>
 					</span>
+					{/* Submit Button */}
+					<Button type="submit">Update</Button>
 				</form>
 			</Form>
 		</>
