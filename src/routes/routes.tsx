@@ -8,7 +8,7 @@ import Register from './student/register';
 import STimetable from './student/timetable';
 import Login from './login';
 import Grades from './student/grade';
-
+import TATimetable from './student/ta_timetable';
 
 const user = {
 	isTa: () => 'ta',
@@ -28,7 +28,7 @@ students.add(new RouteComposite('register', BookPlus, 'public', <Register />));
 students.add(new RouteComposite('timetable', Calendar, 'public', <STimetable />));
 students.add(new RouteComposite('grades', Table, 'public', <Grades />));
 user.isTa() == 'ta'
-	? students.add(new RouteComposite('assistance_class', Calendar, 'public', <Profile />))
+	? students.add(new RouteComposite('assistance_class', Calendar, 'public', <TATimetable />))
 	: null;
 
 root.add(teachers);
