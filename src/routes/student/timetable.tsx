@@ -113,10 +113,10 @@ data.forEach((item) => {
 
 const STimetable = () => {
 	return (
-		<div>
+		<>
 			<Header title="Timetable" />
 			<Timetable columns={columns} data={day_data} />
-		</div>
+		</>
 	);
 };
 
