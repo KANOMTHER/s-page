@@ -57,18 +57,19 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 	class LoginToHomeDecorator extends LoginDecorator {
 		public async login(_user: LoginType) {
 			await super.login(_user);
-			console.log(user)
-			if (user?.role === 'admin') {
+			while(user === null) {
+				await new Promise(resolve => setTimeout(resolve, 1000));
+			}
+			if (user.role === 'student') {
+				navigate('/students/profile');
+			} else if (user.role === 'teacher') {
+				navigate('/teachers/profile');
+			}
+			else if (user.role === 'admin') {
 				navigate('/admin');
 			}
-			else if (user?.role === 'student') {
-				navigate('/students');
-			}
-			else if (user?.role === 'teacher') {
-				navigate('/teachers');
-			}
 			else {
-				navigate('/');
+				alert('Invalid role');
 			}
 		}
 	}
