@@ -1,6 +1,5 @@
 import { useContext, createContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import getCookie from '@/utils/getcookie';
 import axfetch from '@/utils/axfetch';
 
 type AuthUserType = {
@@ -15,18 +14,29 @@ type LoginType = {
 
 interface AuthType {
 	user: AuthUserType | null;
-	token: string | null;
+	setUser: (user: AuthUserType) => void;
 	login: (user: LoginType) => Promise<unknown>;
 	logout: () => void;
+	getUser: () => AuthUserType | null;
+	navigateTo: (role: string) => void;
 }
 
 export const AuthContext = createContext<AuthType | null>(null);
 
 const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 	const [user, setUser] = useState<AuthUserType | null>(null);
-	const [token, setToken] = useState<string | null>(null);
 
 	const navigate = useNavigate();
+
+	const navigateTo = (role: string) => {
+		if (role === 'admin') {
+			navigate('/admin');
+		} else if (role === 'student') {
+			navigate('/students/profile');
+		} else if (role === 'teacher') {
+			navigate('/teachers');
+		}
+	};
 
 	interface LoginComponent {
 		login(user: LoginType): Promise<unknown>;
@@ -36,14 +46,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 		public async login(user: LoginType) {
 			await axfetch.post('/api/auth/login', user).then((res) => {
 				setUser(res.data);
-				setToken(getCookie('session') || '');
-				if (res.data.role === 'admin') {
-					navigate('/admin');
-				} else if (res.data.role === 'student') {
-					navigate('/students/profile');
-				} else if (res.data.role === 'teacher') {
-					navigate('/teachers');
-				}
+				navigateTo(res.data.role);
 			});
 		}
 	}
@@ -70,6 +73,13 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 		}
 	}
 
+	const getUser = () => {
+		axfetch.get('/api/auth').then((res) => {
+			setUser(res.data ?? null);
+		});
+		return user;
+	}
+
 	const login = async (user: LoginType) => {
 		const login = new LoginErrorDecorator(new LoginConcreteComponent());
 		await login.login(user);
@@ -81,7 +91,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 	};
 
 	return (
-		<AuthContext.Provider value={{ user, token, login, logout }}>{children}</AuthContext.Provider>
+		<AuthContext.Provider value={{ user, login, logout, setUser, getUser, navigateTo }}>{children}</AuthContext.Provider>
 	);
 };
 

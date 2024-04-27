@@ -43,18 +43,30 @@ const Login = () => {
 	});
 
 	const onSubmit = (values: z.infer<typeof loginSchema>) => {
-		console.log(values);
-		console.log(auth);
 		auth?.login(values);
 	};
 
 	useEffect(() => {
-		console.log(form.getValues('id'));
-		if (String(form.getValues('id')) === ''){
-			form.resetField('id');
+		console.log(auth?.user);
+		if (auth?.user?.id && auth?.user?.role) {
+			auth?.navigateTo(auth?.user.role);
+		}
+		else if (auth?.user?.id === 0 && auth?.user?.role === '') {
+			auth?.logout();
+		}
+		else {
+			auth?.getUser();
 		}
 	// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [form.getValues('id')])
+	}, [auth?.user]);
+
+	useEffect(() => {
+		console.log(form.getValues('id'));
+		if (String(form.getValues('id')) === '') {
+			form.resetField('id');
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [form.getValues('id')]);
 
 	return (
 		<div className="flex h-screen w-full flex-col items-center justify-center gap-8 bg-background">
