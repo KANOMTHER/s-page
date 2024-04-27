@@ -16,7 +16,7 @@ type LoginType = {
 interface AuthType {
 	user: AuthUserType | null;
 	token: string | null;
-	login: (user: LoginType) => Promise<void>;
+	login: (user: LoginType) => Promise<unknown>;
 	logout: () => void;
 }
 
@@ -29,16 +29,22 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 	const navigate = useNavigate();
 
 	interface LoginComponent {
-		login(user: LoginType): Promise<void>;
+		login(user: LoginType): Promise<unknown>;
 	}
 
 	class LoginConcreteComponent implements LoginComponent {
 		public async login(user: LoginType) {
-			await	axfetch.post('/api/auth/login', user).then((res) => {
+			await axfetch.post('/api/auth/login', user).then((res) => {
 				setUser(res.data);
 				setToken(getCookie('session') || '');
-				console.log(res.data);
-			})
+				if (res.data.role === 'admin') {
+					navigate('/admin');
+				} else if (res.data.role === 'student') {
+					navigate('/students/profile');
+				} else if (res.data.role === 'teacher') {
+					navigate('/teachers');
+				}
+			});
 		}
 	}
 
@@ -54,50 +60,28 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 		}
 	}
 
-	class LoginToHomeDecorator extends LoginDecorator {
-		public async login(_user: LoginType) {
-			await super.login(_user);
-			while(user === null) {
-				await new Promise(resolve => setTimeout(resolve, 1000));
-			}
-			if (user.role === 'student') {
-				navigate('/students/profile');
-			} else if (user.role === 'teacher') {
-				navigate('/teachers/profile');
-			}
-			else if (user.role === 'admin') {
-				navigate('/admin');
-			}
-			else {
-				alert('Invalid role');
-			}
-		}
-	}
-
 	class LoginErrorDecorator extends LoginDecorator {
 		public async login(user: LoginType): Promise<void> {
 			try {
 				await super.login(user);
 			} catch (error) {
-				console.error('Error:', error);
+				alert('Invalid credentials');
 			}
 		}
 	}
 
 	const login = async (user: LoginType) => {
-		const login = new LoginToHomeDecorator(new LoginErrorDecorator(new LoginConcreteComponent()));
+		const login = new LoginErrorDecorator(new LoginConcreteComponent());
 		await login.login(user);
 	};
 
 	const logout = () => {
 		document.cookie = 'session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-		navigate('/login');
+		navigate('/');
 	};
 
 	return (
-		<AuthContext.Provider value={{ user, token, login, logout }}>
-			{children}
-		</AuthContext.Provider>
+		<AuthContext.Provider value={{ user, token, login, logout }}>{children}</AuthContext.Provider>
 	);
 };
 
