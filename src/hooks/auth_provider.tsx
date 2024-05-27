@@ -76,6 +76,9 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 	const getUser = () => {
 		axfetch.get('/api/auth').then((res) => {
 			setUser(res.data ?? null);
+		}).catch(()=>{
+			setUser(null);
+			logout();
 		});
 		return user;
 	}
@@ -86,7 +89,9 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 	};
 
 	const logout = () => {
-		document.cookie = 'session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+		axfetch.post('/api/auth/logout').then(()=>{
+			setUser(null);
+		})
 		navigate('/');
 	};
 
