@@ -1,22 +1,7 @@
 import { ColumnDef } from '@tanstack/react-table';
-import { z } from 'zod';
+import type { Timetable } from '@/model/types/timetable_schema';
 
-const timetableSchema = z.object({
-	Day: z.number(),
-	Class: z.array(
-		z.object({
-			CourseCode: z.string(),
-			Section: z.number(),
-			StartTime: z.string(),
-			EndTime: z.string(),
-			Classroom: z.string(),
-			ClassType: z.string(),
-		}),
-	),
-});
-
-export type Timetable = z.infer<typeof timetableSchema>;
-type Class = z.infer<typeof timetableSchema>['Class'][0];
+type Class = Timetable['Class'][0];
 
 // create time array
 const time_array = (start: string, end: string, period: number) => {
@@ -58,7 +43,7 @@ export const columns: ColumnDef<Timetable>[] = [
 			return <span className={`${day_color[day]} `}>{day_name[day]}</span>;
 		},
 	},
-	...time_array('08:00', '18:00', 5).map((time) => {
+	...time_array('08:30', '18:30', 5).map((time) => {
 		return {
 			header: time,
 			cell: (cell: { row: { original: { Class: Class[] } } }) => {
@@ -67,7 +52,7 @@ export const columns: ColumnDef<Timetable>[] = [
 				});
 				if (class_) {
 					return (
-						<div>
+						<div className='flex flex-col items-center'>
 							<p>{class_.CourseCode}</p>
 							<p>{class_.Classroom}</p>
 						</div>
