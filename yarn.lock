@@ -4868,6 +4868,7 @@ __metadata:
     react-hook-form: "npm:^7.51.3"
     react-router-dom: "npm:^6.22.3"
     shadcn-ui: "npm:^0.8.0"
+    sweetalert2: "npm:^11.10.8"
     tailwind-merge: "npm:^2.2.2"
     tailwindcss: "npm:^3.4.3"
     tailwindcss-animate: "npm:^1.0.7"
@@ -5171,6 +5172,13 @@ __metadata:
   version: 1.0.0
   resolution: "supports-preserve-symlinks-flag@npm:1.0.0"
   checksum: 10c0/6c4032340701a9950865f7ae8ef38578d8d7053f5e10518076e6554a9381fa91bd9c6850193695c141f32b21f979c985db07265a758867bac95de05f7d8aeb39
+  languageName: node
+  linkType: hard
+
+"sweetalert2@npm:^11.10.8":
+  version: 11.10.8
+  resolution: "sweetalert2@npm:11.10.8"
+  checksum: 10c0/c798df75bcf517e1807c923ac03534dde1024f3d9478f338b48fe0e3abdd3c883bb518abc511c4cb04d244153e3aeee4f70f3ba10e71079fac502efcb25b3f93
   languageName: node
   linkType: hard
 
