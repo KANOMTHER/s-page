@@ -9,64 +9,110 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQuery } from '@tanstack/react-query';
-import axfetch from '@/utils/axfetch';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-
-const studentSchema = z.object({
-	ID: z.number(),
-	Program: z.object({
-		Faculty: z.object({
-			Major: z.string(),
-			Department: z.string(),
-		}),
-		ProgramName: z.string(),
-	}),
-	Degree: z.string(),
-	Year: z.number(),
-	FName: z.string(),
-	LName: z.string(),
-	DOB: z.string(),
-	Entered: z.string(),
-	Graduated: z.string().nullable(),
-	Email: z.string().email(),
-	Phone: z.string(),
-	Advisor: z.object({
-		FName: z.string(),
-		LName: z.string(),
-	}),
-});
+import { getStudent } from '@/model/data/student_data';
+import { useAuth } from '@/hooks/auth_provider';
+import { studentSchema } from '@/model/types/student_schema';
+import type { Student } from '@/model/types/student_schema';
+import { updateStudent } from '@/model/func/student_action';
+import Swal from 'sweetalert2';
 
 const StudentProfile = () => {
-	const getStudent = async () => {
-		const res = await axfetch.get('/api/student/64070501001');
-		return res.data.message;
-	}
+	const auth = useAuth();
+	const queryClient = useQueryClient();
 
-	const { data: student, isPending, isError, error } = useQuery({
-		queryKey: ['student'],
-		queryFn: getStudent,
+	useEffect(
+		() => {
+			if (auth?.user?.role !== 'student') {
+				auth?.navigateTo(auth?.user?.role ?? '');
+			}
+			if (!auth?.user) {
+				auth?.getUser();
+			}
+		},
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[auth?.user?.role, auth?.user],
+	);
+
+	const {
+		data: student,
+		isPending,
+		isError,
+		error,
+	} = useQuery({
+		queryKey: ['student', auth?.user?.id],
+		queryFn: () => getStudent(auth?.user?.id || 0),
+		enabled: !!auth?.user?.id,
 	});
 
-	const form = useForm<z.infer<typeof studentSchema>>({
+	const mutation = useMutation({
+		mutationFn: ({ id, body }: { id: number; body: Student }) => updateStudent(id, body),
+		onSuccess: (data) => {
+			queryClient.setQueryData(['student', auth?.user?.id], data);
+		},
+		onMutate: () => {
+			Swal.fire({
+				title: 'Updating ...',
+				allowOutsideClick: false,
+				allowEscapeKey: false,
+				allowEnterKey: false,
+				showConfirmButton: false,
+				showCancelButton: false,
+				showCloseButton: false,
+				showLoaderOnConfirm: true,
+				backdrop: true,
+				didOpen: () => {
+					Swal.showLoading();
+				},
+			});
+		},
+		onSettled: () => {
+			Swal.close();
+			Swal.fire({
+				title: 'Student Profile Updated',
+				text: 'Student profile has been updated successfully',
+				icon: 'success',
+				showConfirmButton: false,
+				showCancelButton: false,
+				showCloseButton: false,
+				toast: true,
+				timer: 2000,
+				timerProgressBar: true,
+				position: 'top-right',
+			})
+		}
+	});
+
+	const form = useForm<Student>({
 		resolver: zodResolver(studentSchema),
 	});
 
-	const onSubmit = (values: z.infer<typeof studentSchema>) => {
+	const onSubmit = (values: Student) => {
 		console.log(values);
+		if (auth?.user?.id) {
+			mutation.mutate({ id: auth.user.id, body: values });
+		}
 	};
 
-	useEffect(()=>{
+	useEffect(() => {
 		if (!student) return;
 		form.reset({
 			...student,
-			DOB: new Date(student.DOB).toLocaleString('en-EN', {year: 'numeric', month: 'short', day: '2-digit'}),
-			Entered: new Date(student.Entered).toLocaleString('en-EN', {year: 'numeric', month: 'short', day: '2-digit'}),
-		})
-	}, [form, student])
+			DOB: new Date(student.DOB).toLocaleString('en-EN', {
+				year: 'numeric',
+				month: 'short',
+				day: '2-digit',
+			}),
+			Entered: new Date(student.Entered).toLocaleString('en-EN', {
+				year: 'numeric',
+				month: 'short',
+				day: '2-digit',
+			}),
+		});
+	}, [form, student]);
 
 	if (isPending) return <div>Loading...</div>;
 
@@ -125,9 +171,9 @@ const StudentProfile = () => {
 							/>
 						</span>
 					</span>
-					<span className="flex w-full flex-row items-center gap-4">
+					<span className="flex w-full flex-row flex-wrap items-center gap-4">
 						{/* Date of Birth */}
-						<span className="flex-1">
+						<span className="min-w-64 flex-1">
 							<FormField
 								control={form.control}
 								name="DOB"
@@ -143,7 +189,7 @@ const StudentProfile = () => {
 							/>
 						</span>
 						{/* Email */}
-						<span className="flex-1">
+						<span className="min-w-64 flex-1">
 							<FormField
 								control={form.control}
 								name="Email"
@@ -152,6 +198,22 @@ const StudentProfile = () => {
 										<FormLabel>Email</FormLabel>
 										<FormControl>
 											<Input type="email" placeholder="Email" {...field} />
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+						</span>
+						{/* Phone */}
+						<span className="min-w-64 flex-1 sm:max-w-[49%]">
+							<FormField
+								control={form.control}
+								name="Phone"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Phone</FormLabel>
+										<FormControl>
+											<Input type="tel" placeholder="Phone Number" {...field} />
 										</FormControl>
 										<FormMessage />
 									</FormItem>
@@ -310,8 +372,43 @@ const StudentProfile = () => {
 							/>
 						</span>
 					</span>
-					{/* Submit Button */}
-					<Button type="submit">Update</Button>
+					<span className="flex w-full flex-row items-stretch gap-2">
+						{/* Revert Button */}
+						<Button
+							type="button"
+							className="flex-1"
+							variant="secondary"
+							disabled={mutation.isPending}
+							onClick={() =>
+								form.reset({
+									...student,
+									DOB: new Date(student.DOB).toLocaleString('en-EN', {
+										year: 'numeric',
+										month: 'short',
+										day: '2-digit',
+									}),
+									Entered: new Date(student.Entered).toLocaleString('en-EN', {
+										year: 'numeric',
+										month: 'short',
+										day: '2-digit',
+									}),
+									Graduated: student.Graduated
+										? new Date(student.Entered).toLocaleDateString('en-En', {
+												year: 'numeric',
+												month: 'short',
+												day: '2-digit',
+											})
+										: 'Not Graduate',
+								})
+							}
+						>
+							Undo
+						</Button>
+						{/* Submit Button */}
+						<Button type="submit" className="flex-1">
+							Update
+						</Button>
+					</span>
 				</form>
 			</Form>
 		</>
