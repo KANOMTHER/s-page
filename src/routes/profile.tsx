@@ -1,12 +1,11 @@
-import Header from '@/components/header';
+import Header from '@/components/shared/header';
 
 const Profile = () => {
-  return (
-    <div>
-      <Header title='' />
-      
-    </div>
-  );
+	return (
+		<div>
+			<Header title="" />
+		</div>
+	);
 };
 
 export default Profile;
