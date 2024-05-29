@@ -8,12 +8,16 @@ export interface RouteComponent {
   parent?: RouteComposite;
   display(): void;
   detach(): void;
-  add(route: RouteComponent): void;
-  delete(route: RouteComponent): void;
   getNode(): RouteComponent;
 }
 
-export class RouteComposite implements RouteComponent {
+export interface IRouteComposite extends RouteComponent {
+  children: RouteComponent[];
+  add(route: RouteComponent): void;
+  delete(route: RouteComponent): void;
+}
+
+export class RouteComposite implements IRouteComposite {
   path: string;
   icon?: LucideIcon;
   type: 'public' | 'private';
@@ -90,14 +94,6 @@ export class RouteLeaf implements RouteComponent {
     const parent = `/${this.parent?.path ?? ''}`;
 
     console.log(`${parent}${composite}`);
-  }
-
-  add(route: RouteComponent): void {
-    throw new Error(`Cannot add ${route.path} to a leaf node.`);
-  }
-
-  delete(route: RouteComponent): void {
-    throw new Error(`Cannot delete ${route.path} to a leaf node.`);
   }
 
   detach(): void {
