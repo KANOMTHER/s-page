@@ -1,4 +1,4 @@
-import Header from '@/components/header';
+import Header from '@/components/shared/header';
 import {
 	Form,
 	FormControl,
@@ -23,19 +23,6 @@ import Swal from 'sweetalert2';
 const StudentProfile = () => {
 	const auth = useAuth();
 	const queryClient = useQueryClient();
-
-	useEffect(
-		() => {
-			if (auth?.user?.role !== 'student') {
-				auth?.navigateTo(auth?.user?.role ?? '');
-			}
-			if (!auth?.user) {
-				auth?.getUser();
-			}
-		},
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[auth?.user?.role, auth?.user],
-	);
 
 	const {
 		data: student,
@@ -82,8 +69,8 @@ const StudentProfile = () => {
 				timer: 2000,
 				timerProgressBar: true,
 				position: 'top-right',
-			})
-		}
+			});
+		},
 	});
 
 	const form = useForm<Student>({
