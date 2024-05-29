@@ -1,4 +1,4 @@
-import Header from '@/components/header';
+import Header from '@/components/shared/header';
 import { columns } from '@/components/student/grades/columns';
 import DataTable from '@/components/ui/datatable';
 
@@ -40,6 +40,8 @@ const data = [
 		grade: 4,
 	},
 ];
+
+
 
 const Grades = () => {
 	return (
