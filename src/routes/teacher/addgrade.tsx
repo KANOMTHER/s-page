@@ -9,6 +9,9 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import axfetch from '@/utils/axfetch';
 import { KeyIcon } from 'lucide-react';
+import { columns } from '@/components/teacher/grades/columns';
+import DataTable from '@/components/ui/datatable';
+
 
 const AddGrade = () => {
 	// const auth = useAuth();
@@ -105,7 +108,7 @@ const AddGrade = () => {
 	}, [classes]);
 
 	useEffect(() => {
-		console.log(classId);
+		localStorage.setItem('classId', classId);
 	}, [classId]);
 
 	return (
@@ -156,6 +159,7 @@ const AddGrade = () => {
 					</Button>
 				</span>
 			</span>
+      <DataTable columns={columns} data={students || []} />
 		</>
 	);
 };
